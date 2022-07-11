@@ -61,7 +61,7 @@ cd ..
 cd k8s-infra
 ```
 
-- replace  <your dynamo db role> in internal-alb-dynamo.yaml with dynamo-rw_role_arn in terraform apply output. kubectl apply -f internal-alb-dynamo.yaml
+- replace {your dynamo db role} in internal-alb-dynamo.yaml with dynamo-rw_role_arn in terraform apply output. kubectl apply -f internal-alb-dynamo.yaml
 - get the newly depolyed ALB license arn 
 ```sh
 export AGW_AWS_REGION=<your region>
@@ -74,7 +74,7 @@ aws elbv2 describe-listeners \
   --query "Listeners[0].ListenerArn" \
   --output text
 ```
-- replace  <your ALB licenter arn> in apigwv2-httpapi.yaml with the value above and replace  <your vpclink id> with apigw_vpclink_id in terraform apply output, then kubectl apply -f apigwv2-httpapi.yaml
+- replace {your ALB listener arn} in apigwv2-httpapi.yaml with the value above and replace {your vpclink id} with apigw_vpclink_id in terraform apply output, then kubectl apply -f apigwv2-httpapi.yaml
 - deploy a DynamonDB table, kubectl apply -f dynamodb-table.yaml
 
 #### Step 6: test your api 
@@ -84,12 +84,12 @@ Get your api domain
 ```
 then post data to dynamodb with post and query data with get
 
-post <your api domain>/rows/add with json payload
+post {your api domain}/rows/add with json payload
 {
             "name": "external"
 }
 
-get <your api domain>/rows/all
+get {your api domain}/rows/all
 
 ## Cleanup
 

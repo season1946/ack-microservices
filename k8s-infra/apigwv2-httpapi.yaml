@@ -76,8 +76,8 @@ spec:
     from:
       name: "ack-api"
   integrationType: HTTP_PROXY
-  integrationURI: "arn:aws:elasticloadbalancing:us-east-1:349361870252:listener/app/k8s-default-ingressa-7e9ed4d1ce/10f3e9e1d7fb20c7/4b4c04f58e69e3a8" # <your ALB licenter arn>
+  integrationURI: "arn:aws:elasticloadbalancing:us-east-1:349361870252:listener/app/k8s-default-ingressa-7e9ed4d1ce/10f3e9e1d7fb20c7/4b4c04f58e69e3a8" # <your ALB listener arn>
   integrationMethod: ANY
   payloadFormatVersion: "1.0"
-  connectionID: "3nebjq" #<your vpclink id>
+  connectionID: "3nebjq" #{your vpclink id}
   connectionType: "VPC_LINK"

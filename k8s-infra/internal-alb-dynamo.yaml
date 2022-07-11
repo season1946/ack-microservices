@@ -4,7 +4,7 @@ kind: ServiceAccount
 metadata:
   name: dynamo-sa
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::349361870252:role/aws008-preprod-test-eks-dynamo-rw-irsa" # your dynamo db role
+    eks.amazonaws.com/role-arn: "arn:aws:iam::349361870252:role/aws008-preprod-test-eks-dynamo-rw-irsa" # {your dynamo db role}
 ---
 apiVersion: apps/v1
 kind: Deployment

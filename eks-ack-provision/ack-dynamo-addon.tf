@@ -52,6 +52,10 @@ module "dynamo_helm_module" {
   helm_config = local.dynamo_helm_config
   irsa_config = local.dynamo_irsa_config
   addon_context = local.dynamo_addon_context
+  
+  depends_on = [
+    module.helm_addon
+  ]
 }
 
 
@@ -62,10 +66,50 @@ data "aws_iam_policy" "dynamo_fullaccess" {
 }
 
 
+# create irsa for api app read and write dynamodb 
+resource "aws_iam_role" "dynamo-rw_role" {
+  name = "${local.cluster_name}-dynamo-rw-irsa"
 
-# resource "aws_iam_policy" "dynamo_fullaccess" {
-#   name        = "${var.eks_cluster_id}-dynamo_fullaccess"
-#   description = "dynamo_fullaccess"
-#   policy      = data.aws_iam_policy_document.dynamo_fullaccess.json
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Federated = "${module.eks_blueprints.eks_oidc_provider_arn}"
+        }
+        
+      },
+    ]
+  })
+  
+  inline_policy {
+    name = "my_inline_policy"
 
-# }
+    policy = jsonencode({
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Action   = [
+               "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:PutItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:DeleteItem",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:UpdateItem"
+          ]
+          Effect   = "Allow"
+          Resource = "*"
+        },
+      ]
+    })
+  }
+}

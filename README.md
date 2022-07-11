@@ -1,10 +1,11 @@
-# EKS Cluster Deployment with new VPC
+# Provision a EKS cluster within a new VPC 
 
 This example deploys the following Basic EKS Cluster with VPC
 
 - Creates a new sample VPC, 3 Private Subnets and 3 Public Subnets
 - Creates Internet gateway for Public Subnets and NAT Gateway for Private Subnets
 - Creates EKS Cluster Control plane with one managed node group
+- Creates IRSA for ACK API gateway, ACK DynamoDB, ACK S3 and deploy their helm charts
 
 ## How to Deploy
 
@@ -21,7 +22,7 @@ Ensure that you have installed the following tools in your Mac or Windows Laptop
 #### Step 1: Clone the repo using the command below
 
 ```sh
-git clone https://github.com/aws-ia/terraform-aws-eks-blueprints.git
+git clone https://github.com/season1946/ack-microservices.git
 ```
 
 #### Step 2: Run Terraform INIT
@@ -29,7 +30,7 @@ git clone https://github.com/aws-ia/terraform-aws-eks-blueprints.git
 Initialize a working directory with configuration files
 
 ```sh
-cd examples/eks-cluster-with-new-vpc/
+cd eks-ack-provision
 terraform init
 ```
 
@@ -38,8 +39,7 @@ terraform init
 Verify the resources created by this execution
 
 ```sh
-export AWS_REGION=<ENTER YOUR REGION>   # Select your own region
-terraform plan
+terraform plan -var-file base.tfvars
 ```
 
 #### Step 4: Finally, Terraform APPLY
@@ -47,29 +47,50 @@ terraform plan
 **Deploy the pattern**
 
 ```sh
-terraform apply
+terraform apply -var-file base.tfvars
 ```
 
 Enter `yes` to apply.
 
-### Configure `kubectl` and test cluster
 
-EKS Cluster details can be extracted from terraform output or from AWS Console to get the name of cluster.
-This following command used to update the `kubeconfig` in your local machine where you run kubectl commands to interact with your EKS Cluster.
+#### Step 5: Deploy miscroservice api infra through kubectl commands
+login the eks cluster
 
-#### Step 5: Run `update-kubeconfig` command
+```sh
+aws eks --region <enter-your-region> update-kubeconfig --name <cluster-name>
+cd ..
+cd k8s-infra
+```
 
-`~/.kube/config` file gets updated with cluster details and certificate from the below command
+- replace <your dynamo db role> in internal-alb-dynamo.yaml with dynamo-rw_role_arn in terraform apply output. kubectl apply -f internal-alb-dynamo.yaml
+- get the newly depolyed ALB license arn 
+```sh
+export AGW_AWS_REGION=<your region>
+aws elbv2 describe-listeners \
+  --load-balancer-arn $(aws elbv2 describe-load-balancers \
+  --region $AGW_AWS_REGION \
+  --query "LoadBalancers[?contains(DNSName, '$(kubectl get ingress ingress-api-dynamo -o=jsonpath="{.status.loadBalancer.ingress[].hostname}")')].LoadBalancerArn" \
+  --output text) \
+  --region $AGW_AWS_REGION \
+  --query "Listeners[0].ListenerArn" \
+  --output text
+```
+- replace  <your ALB licenter arn> in apigwv2-httpapi.yaml with the value above and replace <your vpclink id> with apigw_vpclink_id in terraform apply output, then kubectl apply -f apigwv2-httpapi.yaml
+- deploy a DynamonDB table, kubectl apply -f dynamodb-table.yaml
 
-    $ aws eks --region <enter-your-region> update-kubeconfig --name <cluster-name>
+#### Step 6: test your api 
+Get your api domain 
+```sh
+ kubectl get api  ack-api  -o jsonpath="{.status.apiEndpoint}"
+```
+then post data to dynamodb with post and query data with get
 
-#### Step 6: List all the worker nodes by running the command below
+post <your api domain>/rows/add
+{
+            "name": "external"
+}
 
-    $ kubectl get nodes
-
-#### Step 7: List all the pods running in `kube-system` namespace
-
-    $ kubectl get pods -n kube-system
+get <your api domain>/rows/all
 
 ## Cleanup
 
@@ -78,13 +99,16 @@ To clean up your environment, destroy the Terraform modules in reverse order.
 Destroy the Kubernetes Add-ons, EKS cluster with Node groups and VPC
 
 ```sh
-terraform destroy -target="module.eks_blueprints_kubernetes_addons" -auto-approve
-terraform destroy -target="module.eks_blueprints" -auto-approve
-terraform destroy -target="module.vpc" -auto-approve
+cd ..
+kubectl delete -f k8s-infra/
+cd eks-ack-provision
+terraform destroy -target="module.eks_blueprints_kubernetes_addons" -var-file base.tfvars -auto-approve
+terraform destroy -target="module.eks_blueprints" -var-file base.tfvars -auto-approve
+terraform destroy -target="module.vpc" -var-file base.tfvars -auto-approve
 ```
 
 Finally, destroy any additional resources that are not in the above modules
 
 ```sh
-terraform destroy -auto-approve
+terraform destroy -var-file base.tfvars -auto-approve
 ```

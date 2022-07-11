@@ -79,3 +79,8 @@ output "apigw_vpclink_id" {
   description = "API Gataway vpclink id"
   value       = resource.aws_apigatewayv2_vpc_link.vpclink.id
 }
+
+output "dynamo-rw_role_arn" {
+  description = ""
+  value       = aws_iam_role.dynamo-rw_role.arn
+}

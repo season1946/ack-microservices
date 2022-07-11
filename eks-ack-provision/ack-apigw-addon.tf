@@ -59,6 +59,11 @@ module "helm_addon" {
   helm_config = local.helm_config
   irsa_config = local.irsa_config
   addon_context = local.addon_context
+  
+  depends_on = [
+    module.eks_blueprints_kubernetes_addons
+  ]
+  
 }
 
 
@@ -98,10 +103,3 @@ resource "aws_iam_policy" "apigw_admin" {
   path        = "/"
 
 }
-
-# resource "aws_iam_policy" "dynamo_fullaccess" {
-#   name        = "${var.eks_cluster_id}-dynamo_fullaccess"
-#   description = "dynamo_fullaccess"
-#   policy      = data.aws_iam_policy_document.dynamo_fullaccess.json
-
-# }

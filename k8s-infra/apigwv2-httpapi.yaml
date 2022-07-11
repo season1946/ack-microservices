@@ -61,7 +61,7 @@ spec:
   apiRef:
     from:
       name: "ack-api"
-  routeKey: "GET /"
+  routeKey: "ANY /{proxy+}"
   targetRef:
     from:
       name: "vpc-integration"
@@ -76,8 +76,8 @@ spec:
     from:
       name: "ack-api"
   integrationType: HTTP_PROXY
-  integrationURI: "arn:aws:elasticloadbalancing:us-east-1:349361870252:listener/app/k8s-default-ingress2-a995df9ee9/6f5de68ae6eba1c5/4b5fbd86b8457e64" # <your ALB licenter arn>
-  integrationMethod: GET
+  integrationURI: "arn:aws:elasticloadbalancing:us-east-1:349361870252:listener/app/k8s-default-ingressa-7e9ed4d1ce/10f3e9e1d7fb20c7/4b4c04f58e69e3a8" # <your ALB licenter arn>
+  integrationMethod: ANY
   payloadFormatVersion: "1.0"
-  connectionID: "qvuvr4" #<your vpclink id>
+  connectionID: "3nebjq" #<your vpclink id>
   connectionType: "VPC_LINK"

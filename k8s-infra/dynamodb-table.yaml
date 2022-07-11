@@ -1,16 +1,16 @@
 apiVersion: dynamodb.services.k8s.aws/v1alpha1
 kind: Table
 metadata:
-  name: productcatalog
+  name: ack-demo
   namespace: ack-system
 spec:
   keySchema:
-    - attributeName: Id1
+    - attributeName: Id
       keyType: HASH
   attributeDefinitions:
-    - attributeName: Id1
-      attributeType: 'N'
+    - attributeName: Id
+      attributeType: 'S'
   provisionedThroughput:
     readCapacityUnits: 1
     writeCapacityUnits: 1
-  tableName: ProductCatalog
+  tableName: ack-demo

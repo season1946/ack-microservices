@@ -184,5 +184,7 @@ resource "aws_apigatewayv2_vpc_link" "vpclink" {
   security_group_ids = [resource.aws_security_group.vpclink_sg.id]
   subnet_ids         =  module.vpc.private_subnets
 
-
+  depends_on = [
+    aws_security_group.vpclink_sg
+  ]
 }

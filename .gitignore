@@ -1,0 +1,4 @@
+eks-ack-provision/.terraform/
+eks-ack-provision/.terraform.lock.hcl
+eks-ack-provision/terraform.tfstate.backup
+eks-ack-provision/terraform.tfstate

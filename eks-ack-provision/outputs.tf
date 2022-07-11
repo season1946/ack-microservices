@@ -13,9 +13,30 @@ output "vpc_cidr" {
   value       = module.vpc.vpc_cidr_block
 }
 
+output "private_subnet_IDs" {
+  description = "VPC private_subnets"
+  value       = module.vpc.private_subnets
+}
+
+
 output "eks_cluster_id" {
   description = "EKS cluster ID"
   value       = module.eks_blueprints.eks_cluster_id
+}
+
+output "eks_oidc_issuer_url" {
+  description = "EKS cluster ID"
+  value       = module.eks_blueprints.eks_oidc_issuer_url
+}
+
+output "oidc_provider" {
+  description = "EKS cluster ID"
+  value       = module.eks_blueprints.oidc_provider
+}
+
+output "eks_oidc_provider_arn" {
+  description = "EKS cluster ID"
+  value       = module.eks_blueprints.eks_oidc_provider_arn
 }
 
 output "eks_managed_nodegroups" {
@@ -52,4 +73,9 @@ output "configure_kubectl" {
 output "region" {
   value       = local.region
   description = "AWS region"
+}
+
+output "apigw_vpclink_id" {
+  description = "API Gataway vpclink id"
+  value       = resource.aws_apigatewayv2_vpc_link.vpclink.id
 }

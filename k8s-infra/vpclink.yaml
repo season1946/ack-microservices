@@ -1,0 +1,13 @@
+# no need! covered by tf
+apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
+kind: VPCLink
+metadata:
+  name: alb-internal
+spec:
+  name: alb-internal
+  securityGroupIDs: 
+    - sg-0d1a6bc55c437215b
+  subnetIDs: 
+    - subnet-0bf3baa99bb8d343a
+    - subnet-02c3422efe27863ea
+    - subnet-07c2f164c4472742f

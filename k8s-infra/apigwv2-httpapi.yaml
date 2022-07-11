@@ -1,0 +1,83 @@
+# create http api gw
+apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
+kind: API
+metadata:
+  name: "ack-api"
+spec:
+  name: "ack-api"
+  protocolType: HTTP
+
+---
+# stage
+apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
+kind: Stage
+metadata:
+  name: "default-stage"
+spec:
+  apiRef:
+    from:
+      name: "ack-api"
+  stageName: "$default"
+  autoDeploy: true
+  description: "auto deployed stage for ack-api"
+---
+# hook with route. this one uses a public http site as backend 
+apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
+kind: Integration
+metadata:
+  name: "ack-integration"
+spec:
+  apiRef:
+    from:
+      name: "ack-api"
+  integrationType: HTTP_PROXY
+  integrationURI: "https://httpbin.org/get"
+  integrationMethod: GET
+  payloadFormatVersion: "1.0"
+
+---
+# route-key used in path
+apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
+kind: Route
+metadata:
+  name: "ack-route"
+spec:
+  apiRef:
+    from:
+      name: "ack-api"
+  routeKey: "GET /ack-route-key"
+  targetRef:
+    from:
+      name: "ack-integration"
+
+
+---
+# route-key used in path
+apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
+kind: Route
+metadata:
+  name: "ack-route-vpclink"
+spec:
+  apiRef:
+    from:
+      name: "ack-api"
+  routeKey: "GET /"
+  targetRef:
+    from:
+      name: "vpc-integration"
+---
+# hook with route. this one uses a public http site as backend 
+apiVersion: apigatewayv2.services.k8s.aws/v1alpha1
+kind: Integration
+metadata:
+  name: "vpc-integration"
+spec:
+  apiRef:
+    from:
+      name: "ack-api"
+  integrationType: HTTP_PROXY
+  integrationURI: "arn:aws:elasticloadbalancing:us-east-1:349361870252:listener/app/k8s-default-ingress2-a995df9ee9/6f5de68ae6eba1c5/4b5fbd86b8457e64" # <your ALB licenter arn>
+  integrationMethod: GET
+  payloadFormatVersion: "1.0"
+  connectionID: "qvuvr4" #<your vpclink id>
+  connectionType: "VPC_LINK"

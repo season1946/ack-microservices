@@ -54,7 +54,7 @@ locals {
 # EKS Blueprints
 #---------------------------------------------------------------
 module "eks_blueprints" {
-  source = "../.."
+  source = "../terraform-aws-eks-blueprints"
 
   cluster_name    = local.cluster_name
   cluster_version = "1.22"
@@ -71,11 +71,23 @@ module "eks_blueprints" {
     }
   }
 
+// add this sg into eks Cluster security group inbound rule
+  # cluster_security_group_additional_rules = {
+  #   ingress = {
+  #     description                   = "api gw vpclink sg to cluster"
+  #     protocol                      = "tcp"
+  #     from_port                     = 80
+  #     to_port                       = 80
+  #     type                          = "ingress"
+  #     source_security_group_id = "resource.aws_security_group.vpclink_sg.id"
+  #   }
+  # }
+
   tags = local.tags
 }
 
 module "eks_blueprints_kubernetes_addons" {
-  source = "../../modules/kubernetes-addons"
+  source = "../terraform-aws-eks-blueprints/modules/kubernetes-addons"
 
   eks_cluster_id       = module.eks_blueprints.eks_cluster_id
   eks_cluster_endpoint = module.eks_blueprints.eks_cluster_endpoint
@@ -121,7 +133,8 @@ module "vpc" {
   enable_nat_gateway   = true
   single_nat_gateway   = true
   enable_dns_hostnames = true
-
+  create_igw           = true
+  
   # Manage so we can name
   manage_default_network_acl    = true
   default_network_acl_tags      = { Name = "${local.cluster_name}-default" }
@@ -141,4 +154,35 @@ module "vpc" {
   }
 
   tags = local.tags
+}
+
+//security group for api gw vpclink
+
+resource "aws_security_group" "vpclink_sg" {
+  name        = "vpclink_sg"
+  description = "security group for api gw vpclink"
+  vpc_id      = module.vpc.vpc_id
+  
+  ingress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+}
+
+//  api gw vpclink
+resource "aws_apigatewayv2_vpc_link" "vpclink" {
+  name               = "vpclink"
+  security_group_ids = [resource.aws_security_group.vpclink_sg.id]
+  subnet_ids         =  module.vpc.private_subnets
+
+
 }
